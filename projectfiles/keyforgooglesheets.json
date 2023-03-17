@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "glessgrouplogging",
+  "private_key_id": "d4361d54ee7c380a24ca152c385a14bbaeb9ae2c",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCZC4r6QF1m08+A\nWn1cbGbEWFALx8JvfQ3bHr5eZ4NvWmPLUg2TIdYBnmzSBamhQKolpujvscvnZInX\nkIXPwHDNCXtTREj6VgpPn3HO+HAh8Y5LA0870GZ0oeBPtBuSSnIDeUBghO8wwN23\n1dsWgFArdw+hc9IdZz2wFHksG4Qn5SoOAnGL8eomr858rsfHfgn8Oo1hKeNP4h+e\njRrgqBIef7zIsHd//3Euqm8tlQgWol/V+BtJtQAX+UL/PqaCweoXXYn0FKkuwd1S\ngvJ582LyLw//GHPyI2Cs4qIerBhtyBtXMAG+o9nglci9cXBmXGh5NaO3Ri6jzRIh\nxTdiLW1jAgMBAAECggEAC/nvw7qStI/BrqkmIzvmZNoGVY2pxQCzu2ByBEA0dFvN\n8GS45DkjHphPqrW/uvss9WpU0yEGNFLVSJWqKwJDsX/a8z6mOVTPVMDE7q3ZVIar\nHGqjYipiQiFCxOnyuGVz+5qa85KjhxyonRCyptWesHAOPJOsLxnbpXJMsytqEZcJ\nza3lxkOilog6DwO/l1m9PZuJ2NZEN600WvW57tpzJSm8phsx78gRcz44pIeXeAQ7\nKD4IvhIzrIc9aKbA4Y+5eOmqzPIWE//H+eXgrjurxV+OXubIomoN42JAC8hwDn2P\nUYwFC+oho5GFkS2Uy/Xt4RoqSBUkzpLjLsgVyzissQKBgQDNhIEKmYg2WuUHZm0w\nWyhnxhGxWyqCHBxIzW0kj5FbPPWzCS94uR0dtnT4udUxHSKgx8btNkt/NCOmJPaZ\ng/8+EBurkmVp/+u/sNWvu2UVVMFZBm2YmnBHwH/5hU7n6b23gdWr+AWedeRyw1J6\nazzMnGiTugxdZUo7z3ycgVdGMQKBgQC+o21pomZ3EEM/hmE1blCP/9xdHYcgaaMl\nJ1Phn0PKJLVmhuF1Oz2c6Dbdt9l/Si4ZIdmTgI8HZ7hDuyZnrcoiBo0u16T2cw4f\nvnx83gk5Ukl2dKD/EseSv81vUUjU0lRtNmZcRLMrbu16rl1COi63fXUDsnqKWdsg\ntuc2gSwD0wKBgCDa1vpH0yPFYinNsRTy7cGxQ3DT/zavocHtvU4D+ZvZYfoONN2a\n0lHGsmp04uUoIDoN1fpkHKuoPS65aAbguDRGxPWnwLiyZhDOB0tBrQY892/w/CJS\nRjLiTlMogZXHo0Gr6unEC7nqZOwH166kaCLZukoriwB/Sd/H6sbmUnpxAoGAAT63\n/DSfTq/AgK2z/NFXnVkia0lCFKgb9KYpGhQcMTnEJYND/awBXwD1OsV0miw12Nwr\nu5bfWEEJJwgV3B96bnZ0fZXS8fkWYoav8XDRxpoO+MMSOhg5TXALO2rgeuNUwdHV\nIU0hjmsPCfoRidkvbOtY1ElaG4UytSf8opJ9YxkCgYA8PWaLv2P17idGB8RPqtGr\nyP0WxTzKDx1lc01biQei2dE0NbX+A6DulESAafF1WFvrZ/ZfX7jn5YIhLk+r5/nC\nKkvpUIWhxeAzUsvWjmOSVFOzZnZOp+dKQ96woI1CyAGBUwRCcLqVb+vOGpYQv8Aj\nUE2ZyK3IHZIkg/gGTbUd+g==\n-----END PRIVATE KEY-----\n",
+  "client_email": "service-acc@glessgrouplogging.iam.gserviceaccount.com",
+  "client_id": "104316184217031609796",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/service-acc%40glessgrouplogging.iam.gserviceaccount.com"
+}
