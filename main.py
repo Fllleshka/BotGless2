@@ -81,7 +81,7 @@ def textmessage(message):
 # Функция сохраниения фаилов в папки менеджеров
 def savefileinfolder(message, bot):
     match message.chat.id:
-        case userid.id_6080:
+        case userid.id_konovalov:
             bot.send_message(message.chat.id, "Готов к приёму файлов", reply_markup = types.ReplyKeyboardRemove())
             bot.register_next_step_handler(message, savefileinfolder2, bot, class_pathmanagers.first)
         case userid.id_zagravskiy:
