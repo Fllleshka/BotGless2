@@ -1,6 +1,10 @@
+import os
+import sqlite3
+
 from telebot import *
 from projectfiles.dates import *
 import datetime
+import requests
 
 # Функция отправки нашего расписания работы
 def timeworking(message, bot):
@@ -102,17 +106,181 @@ def youid(message, bot):
     text3 = "Ваш ID: \n" + str(message.chat.id)
     bot.send_message(message.chat.id, text3)
 
+# Функция создания таблиц
+def createtables(con):
+    # Создаём таблицы
+    with con:
+        con.execute(
+            """
+                CREATE TABLE FullName (
+                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    first_name TEXT,
+                    last_name TEXT
+                );
+            """
+        ),
+        con.execute(
+            """
+                CREATE TABLE PathFolder (
+                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    path TEXT,
+                    id_full_name INTEGER,
+                    FOREIGN KEY (id_full_name) REFERENCES FullName(id)
+                );
+            """
+        ),
+        con.execute(
+            """
+                CREATE TABLE TelegramId (
+                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    idTelegram INTEGER,
+                    id_full_name INTEGER,
+                    FOREIGN KEY (id_full_name) REFERENCES FullName(id)
+                );
+            """
+        ),
+        con.execute(
+            """
+                CREATE TABLE ShortNumber (
+                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    Number INTEGER,
+                    id_full_name INTEGER,
+                    FOREIGN KEY (id_full_name) REFERENCES FullName(id)
+                );
+            """
+        ),
+
+# Функция заполнения таблиц
+def insertdatesintables(con, nametable, data):
+    match (nametable):
+        case "FullName":
+            for element in data:
+                mass = element.split()
+                request = """ INSERT INTO FullName (first_name, last_name) VALUES (?, ?);"""
+                paramsrequest = (mass[0], mass[1])
+                # Вставляем данные в таблицы
+                with con:
+                    con.execute(request, paramsrequest)
+            print("\tТаблица FullName заполнена успешно")
+        case "PathFolder":
+            index = 0
+            for element in data:
+                index += 1
+                request = """ INSERT INTO PathFolder (path, id_full_name) VALUES (?, ?);"""
+                paramsrequest = (element, index)
+                # Вставляем данные в таблицы
+                with con:
+                    con.execute(request, paramsrequest)
+            print("\tТаблица PathFolder заполнена успешно")
+        case "TelegramId":
+            index = 0
+            for element in data:
+                index += 1
+                request = """ INSERT INTO TelegramId (idTelegram, id_full_name) VALUES (?, ?);"""
+                paramsrequest = (element, index)
+                # Вставляем данные в таблицы
+                with con:
+                    con.execute(request, paramsrequest)
+            print("\tТаблица TelegramId заполнена успешно")
+        case "ShortNumber":
+            index = 0
+            for element in data:
+                index += 1
+                request = """ INSERT INTO ShortNumber (Number, id_full_name) VALUES (?, ?);"""
+                paramsrequest = (element, index)
+                # Вставляем данные в таблицы
+                with con:
+                    con.execute(request, paramsrequest)
+            print("\tТаблица ShortNumber заполнена успешно")
+        case _:
+            print("Неверное имя таблицы")
+
+def checkdatesfromdatabase(con):
+    print("Проверка вводимых значений")
+    request = 'SELECT FullName.id, FullName.first_name, FullName.last_name, PathFolder.path, ShortNumber.Number, TelegramId.idTelegram FROM FullName, PathFolder, ShortNumber, TelegramId WHERE FullName.id = PathFolder.id_full_name AND FullName.id = ShortNumber.id_full_name AND FullName.id = TelegramId.id_full_name'
+    with con:
+        cursor = con.cursor()
+        cursor.execute(request)
+        result = cursor.fetchall()
+        for element in result:
+            print(element)
+
 # Функция записи на обслуживание
 def serviserecord(message, bot):
+    # Выяснение даты и времени обращения
     today = datetime.datetime.today()
     todaytime = today.strftime("%H:%M:%S")
-    msg = bot.send_message(message.chat.id, "Выберите тему обращения.")
-    listid = [userid.id_beregovoy, userid.id_konovalov, userid.id_zagravskiy]
-    listnames = [class_namesmanagers.second, class_namesmanagers.third, class_namesmanagers.first]
-    randommanager = random.randint(0, len(listid) - 1)
-    textmessage = todaytime + " [" + message.chat.first_name + " " + message.chat.last_name + "] нажал на кнопку [📝Записаться📝]  перевожу заявку на " + listnames[randommanager] + " ( " + str(listid[randommanager]) + " )"
-    print(textmessage)
-    bot.send_message(userid.id_fleysner, textmessage)
+
+    print(f"Дата и время обращения: {todaytime}")
+
+    pathdatabase = "projectfiles/database.db"
+    if os.path.exists(pathdatabase) == True:
+        os.remove(pathdatabase)
+
+    # Создаём таблицы
+    # Открываем соединение с базой данных
+    con = sqlite3.connect(pathdatabase)
+    # Функция создания таблиц
+    createtables(con)
+    # Закрываем соединение с базой данных
+    con.close()
+
+    # Заполняем таблицы
+    # Открываем соединение с базой данных
+    con = sqlite3.connect(pathdatabase)
+    # Функция заполнения таблицы FullName
+    insertdatesintables(con, 'FullName', Workers)
+    # Функция заполнения таблицы PathFolder
+    insertdatesintables(con, 'PathFolder', [class_pathmanagers.admin,class_pathmanagers.fleysner,
+                                            class_pathmanagers.beregovoy, class_pathmanagers.konovalov,
+                                            class_pathmanagers.zagravskiy, class_pathmanagers.pushkar,
+                                            class_pathmanagers.peshkov])
+    # Функция заполнения таблицы TelegramId
+    insertdatesintables(con, 'TelegramId', [userid.id_6080, userid.id_fleysner, userid.id_beregovoy,
+                                            userid.id_konovalov, userid.id_zagravskiy,
+                                            userid.id_pushkar, userid.id_pushkar])
+    # Функция заполнения таблицы TelegramId
+    insertdatesintables(con, 'ShortNumber', [class_shortnumbersworkers.admin, class_shortnumbersworkers.fleysner,
+                                             class_shortnumbersworkers.beregovoy, class_shortnumbersworkers.konovalov,
+                                             class_shortnumbersworkers.zagravskiy, class_shortnumbersworkers.pushkar,
+                                             class_shortnumbersworkers.peshkov])
+    # Функция проверки данных на вставку
+    checkdatesfromdatabase(con)
+    # Закрываем соединение с базой данных
+    con.close()
+
+    for element in Workers:
+        pass
+        #print(f"{element}\t\t{Id_workers[Workers.index(element)]}\t")
+        #element = Employee(element, )
+
+
+    # Выясняем какие менеджеры сейчас работают
+    index = 0
+    status = []
+    markup = telebot.types.InlineKeyboardMarkup()
+    for i in namesmanagers:
+        statusget = requests.get(urlapi + numbermanagers[index] + '/agent', headers=headers)
+        # Добавляем статус каждого менеджера в список
+        #print(f'{index}\t{numbermanagers[index]}\t{userid}\t{statusget.text}')
+        status.append(str(statusget.text)[1:-1])
+        # Создаём кнопку имени менеджера
+        #buttonname = types.InlineKeyboardButton(namesmanagers[index], callback_data="123")
+        # Создаём кнопку статуса менеджера
+        #buttonstatus = types.InlineKeyboardButton(text=status[index], callback_data=namesmanagers[index])
+        # Добавляем кнопки в меню
+        #markup.add(buttonname, buttonstatus)
+        index += 1
+    print(status)
+
+    #msg = bot.send_message(message.chat.id, "Выберите тему обращения.")
+
+    #listid = [userid.id_beregovoy, userid.id_konovalov, userid.id_zagravskiy]
+    #listnames = [class_namesmanagers.second, class_namesmanagers.third, class_namesmanagers.first]
+    #randommanager = random.randint(0, len(listid) - 1)
+    #textmessage = todaytime + " [" + message.chat.first_name + " " + message.chat.last_name + "] нажал на кнопку [📝Записаться📝]  перевожу заявку на " + listnames[randommanager] + " ( " + str(listid[randommanager]) + " )"
+    #print(textmessage)
+    #bot.send_message(userid.id_6080, textmessage)
 
 # Функция скачивания фаилов в папки менеджеров
 def savefileinfolder2(message, bot, path):

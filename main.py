@@ -58,6 +58,7 @@ def textmessage(message):
         case "🖥Наши социальные сети🖥":
             socialntworks(message, bot)
         case "📝Записаться📝":
+            #pass
             serviserecord(message, bot)
         case "📱Ссылка с TG и отзывами📱":
             channellinkandreviews(message, bot)
@@ -83,13 +84,13 @@ def savefileinfolder(message, bot):
     match message.chat.id:
         case userid.id_konovalov:
             bot.send_message(message.chat.id, "Готов к приёму файлов", reply_markup = types.ReplyKeyboardRemove())
-            bot.register_next_step_handler(message, savefileinfolder2, bot, class_pathmanagers.first)
+            bot.register_next_step_handler(message, savefileinfolder2, bot, class_pathmanagers.konovalov)
         case userid.id_zagravskiy:
             bot.send_message(message.chat.id, "Готов к приёму файлов", reply_markup=types.ReplyKeyboardRemove())
-            bot.register_next_step_handler(message, savefileinfolder2, bot, class_pathmanagers.second)
+            bot.register_next_step_handler(message, savefileinfolder2, bot, class_pathmanagers.zagravskiy)
         case userid.id_beregovoy:
             bot.send_message(message.chat.id, "Готов к приёму файлов", reply_markup=types.ReplyKeyboardRemove())
-            bot.register_next_step_handler(message, savefileinfolder2, bot, class_pathmanagers.third)
+            bot.register_next_step_handler(message, savefileinfolder2, bot, class_pathmanagers.beregovoy)
         case _:
             text = "Вы не имеете доступа к данной функции"
             print(text)
