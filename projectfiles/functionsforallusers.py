@@ -1,4 +1,5 @@
 import os
+import random
 import sqlite3
 
 from telebot import *
@@ -204,6 +205,7 @@ def checkdatesfromdatabase(con):
         result = cursor.fetchall()
         for element in result:
             print(element)
+    return result
 
 # Функция записи на обслуживание
 def serviserecord(message, bot):
@@ -239,42 +241,32 @@ def serviserecord(message, bot):
     insertdatesintables(con, 'TelegramId', [userid.id_6080, userid.id_fleysner, userid.id_beregovoy,
                                             userid.id_konovalov, userid.id_zagravskiy,
                                             userid.id_pushkar, userid.id_pushkar])
-    # Функция заполнения таблицы TelegramId
+    # Функция заполнения таблицы ShortNumber
     insertdatesintables(con, 'ShortNumber', [class_shortnumbersworkers.admin, class_shortnumbersworkers.fleysner,
                                              class_shortnumbersworkers.beregovoy, class_shortnumbersworkers.konovalov,
                                              class_shortnumbersworkers.zagravskiy, class_shortnumbersworkers.pushkar,
                                              class_shortnumbersworkers.peshkov])
     # Функция проверки данных на вставку
-    checkdatesfromdatabase(con)
+    massdates = checkdatesfromdatabase(con)
     # Закрываем соединение с базой данных
     con.close()
 
-    for element in Workers:
-        pass
-        #print(f"{element}\t\t{Id_workers[Workers.index(element)]}\t")
-        #element = Employee(element, )
+    # Количество менеджеров онлайн
+    countonlinemanagers = 0
+    # Выбираем рандомного менеджера, которому упадёт заявка
+    for element in massdates:
+        statusget = requests.get(urlapi + str(element[4]) + '/agent', headers=headers).text
+        if statusget == '"ONLINE"':
+            countonlinemanagers += 1
 
+        print(f"====>{element[1]} {element[2]}\t{statusget}\t{countonlinemanagers}")
+    numbermanagerforrequest = random.randint(0, countonlinemanagers)
+    print(f"{numbermanagerforrequest}")
+    print("Вашей заявкой займётся: ", massdates[numbermanagerforrequest][1])
 
-    # Выясняем какие менеджеры сейчас работают
-    index = 0
-    status = []
-    markup = telebot.types.InlineKeyboardMarkup()
-    for i in namesmanagers:
-        statusget = requests.get(urlapi + numbermanagers[index] + '/agent', headers=headers)
-        # Добавляем статус каждого менеджера в список
-        #print(f'{index}\t{numbermanagers[index]}\t{userid}\t{statusget.text}')
-        status.append(str(statusget.text)[1:-1])
-        # Создаём кнопку имени менеджера
-        #buttonname = types.InlineKeyboardButton(namesmanagers[index], callback_data="123")
-        # Создаём кнопку статуса менеджера
-        #buttonstatus = types.InlineKeyboardButton(text=status[index], callback_data=namesmanagers[index])
-        # Добавляем кнопки в меню
-        #markup.add(buttonname, buttonstatus)
-        index += 1
-    print(status)
 
     #msg = bot.send_message(message.chat.id, "Выберите тему обращения.")
-
+    #markup = telebot.types.InlineKeyboardMarkup()
     #listid = [userid.id_beregovoy, userid.id_konovalov, userid.id_zagravskiy]
     #listnames = [class_namesmanagers.second, class_namesmanagers.third, class_namesmanagers.first]
     #randommanager = random.randint(0, len(listid) - 1)

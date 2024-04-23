@@ -33,7 +33,7 @@ def start(message):
         case userid.id_fleysner:
             markup.add(btn5, btn4, btn7, btn8)
         # Аккаунты менеджеров
-        case userid.id_beregovoy | userid.id_konovalov | userid.id_zagravskiy :
+        case userid.id_beregovoy | userid.id_konovalov | userid.id_zagravskiy | userid.id_peshkov:
             markup.add(btn1, btn2, btn5, btn4, btn9)
         # Аккаунт технического специалиста
         case userid.id_pushkar:
