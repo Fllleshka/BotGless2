@@ -21,6 +21,7 @@ def start(message):
     btn7 = types.KeyboardButton("Выключить Call-центр")
     btn8 = types.KeyboardButton("Перезапуск скрипта")
     btn9 = types.KeyboardButton("Сохранить файл в папку")
+    btn10 = types.KeyboardButton("Подписаться на рассылку заказов")
     # Общие кнопки
 
     # Определяем тип аккаунта
@@ -38,6 +39,9 @@ def start(message):
         # Аккаунт технического специалиста
         case userid.id_pushkar:
             markup.add(btn3, btn5, btn4, btn7, btn8)
+        # Аккаунт кладовщик специалиста
+        case userid.id_ivanov:
+            markup.add(btn8, btn9, btn10)
         # Аккаунт клиента
         case _:
             markup.add(btn1, btn2, btn3, btn5, btn6)
@@ -73,28 +77,14 @@ def textmessage(message):
             offcallcenter(message, bot)
         case "Перезапуск скрипта":
             reloadscriptuploadfilesonserverglessgroup(message, bot)
+        # Кнопки для кладовщиков:
+        case "Подписаться на рассылку заказов":
+            subscribetotransportcompany(message, bot)
         # Кнопки для менеджеров
         case "Сохранить файл в папку":
-            savefileinfolder(message, bot)
+            savefileinfolder2(message, bot)
         case _:
             senderrormessage(message, bot)
-
-# Функция сохраниения фаилов в папки менеджеров
-def savefileinfolder(message, bot):
-    match message.chat.id:
-        case userid.id_konovalov:
-            bot.send_message(message.chat.id, "Готов к приёму файлов", reply_markup = types.ReplyKeyboardRemove())
-            bot.register_next_step_handler(message, savefileinfolder2, bot, class_pathmanagers.konovalov)
-        case userid.id_zagravskiy:
-            bot.send_message(message.chat.id, "Готов к приёму файлов", reply_markup=types.ReplyKeyboardRemove())
-            bot.register_next_step_handler(message, savefileinfolder2, bot, class_pathmanagers.zagravskiy)
-        case userid.id_beregovoy:
-            bot.send_message(message.chat.id, "Готов к приёму файлов", reply_markup=types.ReplyKeyboardRemove())
-            bot.register_next_step_handler(message, savefileinfolder2, bot, class_pathmanagers.beregovoy)
-        case _:
-            text = "Вы не имеете доступа к данной функции"
-            print(text)
-            bot.send_message(message.chat.id, text)
 
 # Класс времён
 class times:

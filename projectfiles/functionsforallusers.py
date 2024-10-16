@@ -1,8 +1,9 @@
 import os
-import random
 import sqlite3
 
 from telebot import *
+from urllib3 import request
+
 from projectfiles.dates import *
 import datetime
 import requests
@@ -150,6 +151,15 @@ def createtables(con):
                 );
             """
         ),
+        con.execute(
+            """
+                CREATE TABLE TransportCompany (
+                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    Name TEXT
+                    FOREIGN KEY (id_full_name) REFERENCES FullName(id)
+                );
+            """
+        ),
 
 # Функция заполнения таблиц
 def insertdatesintables(con, nametable, data):
@@ -196,9 +206,9 @@ def insertdatesintables(con, nametable, data):
         case _:
             print("Неверное имя таблицы")
 
-def checkdatesfromdatabase(con):
+# Функция провери данных в таблице
+def checkdatesfromdatabase(con, request):
     print("Проверка вводимых значений")
-    request = 'SELECT FullName.id, FullName.first_name, FullName.last_name, PathFolder.path, ShortNumber.Number, TelegramId.idTelegram FROM FullName, PathFolder, ShortNumber, TelegramId WHERE FullName.id = PathFolder.id_full_name AND FullName.id = ShortNumber.id_full_name AND FullName.id = TelegramId.id_full_name'
     with con:
         cursor = con.cursor()
         cursor.execute(request)
@@ -206,6 +216,25 @@ def checkdatesfromdatabase(con):
         for element in result:
             print(element)
     return result
+
+# Функция вставки первичных данных в базу
+def insertfirstdatesintables(con):
+    # Функция заполнения таблицы FullName
+    insertdatesintables(con, 'FullName', Workers)
+    # Функция заполнения таблицы PathFolder
+    insertdatesintables(con, 'PathFolder', [class_pathmanagers.admin, class_pathmanagers.fleysner,
+                                            class_pathmanagers.beregovoy, class_pathmanagers.konovalov,
+                                            class_pathmanagers.zagravskiy, class_pathmanagers.pushkar,
+                                            class_pathmanagers.peshkov])
+    # Функция заполнения таблицы TelegramId
+    insertdatesintables(con, 'TelegramId', [userid.id_6080, userid.id_fleysner, userid.id_beregovoy,
+                                            userid.id_konovalov, userid.id_zagravskiy,
+                                            userid.id_pushkar, userid.id_pushkar])
+    # Функция заполнения таблицы ShortNumber
+    insertdatesintables(con, 'ShortNumber', [class_shortnumbersworkers.admin, class_shortnumbersworkers.fleysner,
+                                             class_shortnumbersworkers.beregovoy, class_shortnumbersworkers.konovalov,
+                                             class_shortnumbersworkers.zagravskiy, class_shortnumbersworkers.pushkar,
+                                             class_shortnumbersworkers.peshkov])
 
 # Функция записи на обслуживание
 def serviserecord(message, bot):
@@ -215,7 +244,6 @@ def serviserecord(message, bot):
 
     print(f"Дата и время обращения: {todaytime}")
 
-    pathdatabase = "projectfiles/database.db"
     if os.path.exists(pathdatabase) == True:
         os.remove(pathdatabase)
 
@@ -230,24 +258,12 @@ def serviserecord(message, bot):
     # Заполняем таблицы
     # Открываем соединение с базой данных
     con = sqlite3.connect(pathdatabase)
-    # Функция заполнения таблицы FullName
-    insertdatesintables(con, 'FullName', Workers)
-    # Функция заполнения таблицы PathFolder
-    insertdatesintables(con, 'PathFolder', [class_pathmanagers.admin,class_pathmanagers.fleysner,
-                                            class_pathmanagers.beregovoy, class_pathmanagers.konovalov,
-                                            class_pathmanagers.zagravskiy, class_pathmanagers.pushkar,
-                                            class_pathmanagers.peshkov])
-    # Функция заполнения таблицы TelegramId
-    insertdatesintables(con, 'TelegramId', [userid.id_6080, userid.id_fleysner, userid.id_beregovoy,
-                                            userid.id_konovalov, userid.id_zagravskiy,
-                                            userid.id_pushkar, userid.id_pushkar])
-    # Функция заполнения таблицы ShortNumber
-    insertdatesintables(con, 'ShortNumber', [class_shortnumbersworkers.admin, class_shortnumbersworkers.fleysner,
-                                             class_shortnumbersworkers.beregovoy, class_shortnumbersworkers.konovalov,
-                                             class_shortnumbersworkers.zagravskiy, class_shortnumbersworkers.pushkar,
-                                             class_shortnumbersworkers.peshkov])
+    # Функция вставки первичных данных в базу
+    insertfirstdatesintables(con)
+
     # Функция проверки данных на вставку
-    massdates = checkdatesfromdatabase(con)
+    request = 'SELECT FullName.id, FullName.first_name, FullName.last_name, PathFolder.path, ShortNumber.Number, TelegramId.idTelegram FROM FullName, PathFolder, ShortNumber, TelegramId WHERE FullName.id = PathFolder.id_full_name AND FullName.id = ShortNumber.id_full_name AND FullName.id = TelegramId.id_full_name'
+    massdates = checkdatesfromdatabase(con, request)
     # Закрываем соединение с базой данных
     con.close()
 
@@ -274,7 +290,7 @@ def serviserecord(message, bot):
     #print(textmessage)
     #bot.send_message(userid.id_6080, textmessage)
 
-# Функция скачивания фаилов в папки менеджеров
+# Функция скачивания файлов в папки менеджеров
 def savefileinfolder2(message, bot, path):
     # Информация о фаиле
     file_id_info = bot.get_file(message.document.file_id)
@@ -300,3 +316,37 @@ def savefileinfolder2(message, bot, path):
     markup.add(types.KeyboardButton("/start"))
     text = "Фаил сохранён в папку:\n!папка для фаилов из telegram\n В твоей личной папке на сетевом диске"
     bot.send_message(message.chat.id, text, reply_markup=markup)
+
+# Функция подписки на транспортные компании
+def subscribetotransportcompany(message, bot):
+    print(f"Функция подписки на ТК")
+
+    # Выяснием id человека
+    id_sotr = message.chat.id
+    print(f"Сотрудник с id: {id_sotr}")
+
+    if os.path.exists(pathdatabase) == True:
+        print("Файл базы данных существует!")
+        # Открываем соединение с базой данных
+        con = sqlite3.connect(pathdatabase)
+        # Выводим данные из базы данных
+        request = 'SELECT FullName.id, FullName.first_name, FullName.last_name, PathFolder.path, ShortNumber.Number, TelegramId.idTelegram FROM FullName, PathFolder, ShortNumber, TelegramId WHERE FullName.id = PathFolder.id_full_name AND FullName.id = ShortNumber.id_full_name AND FullName.id = TelegramId.id_full_name AND TelegramId.idTelegram = ' + str(id_sotr)
+        checkdatesfromdatabase(con, request)
+        # Закрываем соединение с базой данных
+        con.close()
+    else:
+        print("Файл базы данных отсутствует!\tСоздаём базу и наполняем данными")
+        # Открываем соединение с базой данных
+        con = sqlite3.connect(pathdatabase)
+        # Функция создания таблиц
+        createtables(con)
+        # Функция наполнения её первичными данными
+        insertfirstdatesintables(con)
+        # Выводим данные из базы данных
+        request = 'SELECT FullName.id, FullName.first_name, FullName.last_name, PathFolder.path, ShortNumber.Number, TelegramId.idTelegram FROM FullName, PathFolder, ShortNumber, TelegramId WHERE FullName.id = PathFolder.id_full_name AND FullName.id = ShortNumber.id_full_name AND FullName.id = TelegramId.id_full_name AND TelegramId.idTelegram = ' + str(id_sotr)
+        checkdatesfromdatabase(con, request)
+        # Закрываем соединение с базой данных
+        con.close()
+
+    # Достаём данные по всем доступным ТК из базы данных
+    # Формируем список кнопок с этими ТК, справа должны быть статусы
