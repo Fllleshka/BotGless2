@@ -155,8 +155,9 @@ def createtables(con):
             """
                 CREATE TABLE TransportCompany (
                     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    Name TEXT
-                    FOREIGN KEY (id_full_name) REFERENCES FullName(id)
+                    Name TEXT,
+                    id_responsible INTEGER,
+                    FOREIGN KEY (id_responsible) REFERENCES FullName(id)
                 );
             """
         ),
@@ -203,18 +204,29 @@ def insertdatesintables(con, nametable, data):
                 with con:
                     con.execute(request, paramsrequest)
             print("\tТаблица ShortNumber заполнена успешно")
+
+        case "TransportCompany":
+            index = 0
+            masstk = [transport_companies.dellin, transport_companies.nrg_tk, transport_companies.pecom, transport_companies.cdek]
+            for element in data:
+                request = """ INSERT INTO TransportCompany (Name, id_responsible) VALUES (?, ?);"""
+                paramsrequest = (element, 'None')
+                # Вставляем данные в таблицы
+                with con:
+                    con.execute(request, paramsrequest)
+            print("\tТаблица TransportCompany заполнена успешно")
         case _:
             print("Неверное имя таблицы")
 
-# Функция провери данных в таблице
+# Функция проверки данных в таблице
 def checkdatesfromdatabase(con, request):
-    print("Проверка вводимых значений")
+    #print("Проверка вводимых значений")
     with con:
         cursor = con.cursor()
         cursor.execute(request)
         result = cursor.fetchall()
-        for element in result:
-            print(element)
+        #for element in result:
+        #    print(element)
     return result
 
 # Функция вставки первичных данных в базу
@@ -235,6 +247,9 @@ def insertfirstdatesintables(con):
                                              class_shortnumbersworkers.beregovoy, class_shortnumbersworkers.konovalov,
                                              class_shortnumbersworkers.zagravskiy, class_shortnumbersworkers.pushkar,
                                              class_shortnumbersworkers.peshkov])
+    # Функция заполнения таблицы TransportCompany
+    insertdatesintables(con, 'TransportCompany', [transport_companies.dellin, transport_companies.nrg_tk,
+                                             transport_companies.pecom, transport_companies.cdek])
 
 # Функция записи на обслуживание
 def serviserecord(message, bot):
@@ -325,13 +340,11 @@ def subscribetotransportcompany(message, bot):
     id_sotr = message.chat.id
     print(f"Сотрудник с id: {id_sotr}")
 
+    # Обработка утери базы данных
     if os.path.exists(pathdatabase) == True:
         print("Файл базы данных существует!")
         # Открываем соединение с базой данных
         con = sqlite3.connect(pathdatabase)
-        # Выводим данные из базы данных
-        request = 'SELECT FullName.id, FullName.first_name, FullName.last_name, PathFolder.path, ShortNumber.Number, TelegramId.idTelegram FROM FullName, PathFolder, ShortNumber, TelegramId WHERE FullName.id = PathFolder.id_full_name AND FullName.id = ShortNumber.id_full_name AND FullName.id = TelegramId.id_full_name AND TelegramId.idTelegram = ' + str(id_sotr)
-        checkdatesfromdatabase(con, request)
         # Закрываем соединение с базой данных
         con.close()
     else:
@@ -342,11 +355,45 @@ def subscribetotransportcompany(message, bot):
         createtables(con)
         # Функция наполнения её первичными данными
         insertfirstdatesintables(con)
-        # Выводим данные из базы данных
-        request = 'SELECT FullName.id, FullName.first_name, FullName.last_name, PathFolder.path, ShortNumber.Number, TelegramId.idTelegram FROM FullName, PathFolder, ShortNumber, TelegramId WHERE FullName.id = PathFolder.id_full_name AND FullName.id = ShortNumber.id_full_name AND FullName.id = TelegramId.id_full_name AND TelegramId.idTelegram = ' + str(id_sotr)
-        checkdatesfromdatabase(con, request)
         # Закрываем соединение с базой данных
         con.close()
 
     # Достаём данные по всем доступным ТК из базы данных
+    # Открываем соединение с базой данных
+    con = sqlite3.connect(pathdatabase)
+    request = 'SELECT Name, id_responsible FROM TransportCompany'
+    datesfromdatabase = checkdatesfromdatabase(con, request)
+    # Закрываем соединение с базой данных
+    con.close()
     # Формируем список кнопок с этими ТК, справа должны быть статусы
+    print(datesfromdatabase)
+    for element in datesfromdatabase:
+        print(f"{element[0]}\t{element[1]}")
+    # Формируем кнопки
+    markup = telebot.types.InlineKeyboardMarkup()
+    for element in datesfromdatabase:
+        btn1 = telebot.types.InlineKeyboardButton(element[0], callback_data = "123")
+        btn2 = telebot.types.InlineKeyboardButton(element[1], callback_data = element[0])
+        markup.row(btn1, btn2)
+    btn3 = telebot.types.InlineKeyboardButton(text = "Выйти из меню", callback_data = "Break")
+    markup.add(btn3)
+
+    bot.send_message(message.chat.id, "Список ТК", reply_markup=markup)
+
+    @bot.callback_query_handler(func=lambda call: True)
+    def callback_inline(call):
+        match (call.data):
+            case transport_companies.dellin:
+                bot.send_message(call.message.chat.id, 'Серьёзно, ' + transport_companies.dellin + "?")
+            case transport_companies.nrg_tk:
+                bot.send_message(call.message.chat.id, 'Серьёзно, ' + transport_companies.nrg_tk + "?")
+            case transport_companies.pecom:
+                bot.send_message(call.message.chat.id, 'Серьёзно, ' + transport_companies.pecom + "?")
+            case transport_companies.cdek:
+                bot.send_message(call.message.chat.id, 'Серьёзно, ' + transport_companies.cdek + "?")
+            case "Break":
+                print("BREAK")
+            case _:
+                print("На кнопочку справа!")
+                bot.answer_callback_query(call.id, "На кнопочку справа!")
+

@@ -21,7 +21,7 @@ def start(message):
     btn7 = types.KeyboardButton("Выключить Call-центр")
     btn8 = types.KeyboardButton("Перезапуск скрипта")
     btn9 = types.KeyboardButton("Сохранить файл в папку")
-    btn10 = types.KeyboardButton("Подписаться на рассылку заказов")
+    btn10 = types.KeyboardButton("Подписки на ТК")
     # Общие кнопки
 
     # Определяем тип аккаунта
@@ -78,7 +78,7 @@ def textmessage(message):
         case "Перезапуск скрипта":
             reloadscriptuploadfilesonserverglessgroup(message, bot)
         # Кнопки для кладовщиков:
-        case "Подписаться на рассылку заказов":
+        case "Подписки на ТК":
             subscribetotransportcompany(message, bot)
         # Кнопки для менеджеров
         case "Сохранить файл в папку":
