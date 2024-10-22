@@ -22,7 +22,6 @@ def start(message):
     btn8 = types.KeyboardButton("Перезапуск скрипта")
     btn9 = types.KeyboardButton("Сохранить файл в папку")
     btn10 = types.KeyboardButton("Подписки на ТК")
-    # Общие кнопки
 
     # Определяем тип аккаунта
     id = message.chat.id

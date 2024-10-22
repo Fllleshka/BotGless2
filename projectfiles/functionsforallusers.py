@@ -361,25 +361,31 @@ def subscribetotransportcompany(message, bot):
     # Достаём данные по всем доступным ТК из базы данных
     # Открываем соединение с базой данных
     con = sqlite3.connect(pathdatabase)
-    request = 'SELECT Name, id_responsible FROM TransportCompany'
+    request = ('SELECT TransportCompany.Name, FullName.first_name, FullName.last_name FROM TransportCompany, FullName WHERE TransportCompany.id_responsible=FullName.id UNION SELECT TransportCompany.Name, TransportCompany.id_responsible, TransportCompany.id_responsible FROM TransportCompany WHERE TransportCompany.id_responsible="None"')
     datesfromdatabase = checkdatesfromdatabase(con, request)
     # Закрываем соединение с базой данных
     con.close()
     # Формируем список кнопок с этими ТК, справа должны быть статусы
-    print(datesfromdatabase)
-    for element in datesfromdatabase:
-        print(f"{element[0]}\t{element[1]}")
     # Формируем кнопки
     markup = telebot.types.InlineKeyboardMarkup()
+    # Разбираем полученные данные
     for element in datesfromdatabase:
-        btn1 = telebot.types.InlineKeyboardButton(element[0], callback_data = "123")
-        btn2 = telebot.types.InlineKeyboardButton(element[1], callback_data = element[0])
+        # Название кнопки отвественного
+        name = element[1] + " " + element[2]
+        responsiblename = "Отсутствует ответственный"
+        btn1 = telebot.types.InlineKeyboardButton(element[0], callback_data="WrongButton")
+        # Обработка отсутствие отвественного
+        if name == "None None":
+            btn2 = telebot.types.InlineKeyboardButton(responsiblename, callback_data=element[0])
+        else:
+            btn2 = telebot.types.InlineKeyboardButton(name, callback_data=element[0])
         markup.row(btn1, btn2)
+    # Кнопка выхода в главное меню
     btn3 = telebot.types.InlineKeyboardButton(text = "Выйти из меню", callback_data = "Break")
     markup.add(btn3)
 
-    bot.send_message(message.chat.id, "Список ТК", reply_markup=markup)
-
+    old_message = bot.send_message(message.chat.id, "Список ТК", reply_markup=markup)
+    print(f"ID old message: {old_message.message_id}")
     @bot.callback_query_handler(func=lambda call: True)
     def callback_inline(call):
         match (call.data):
@@ -391,8 +397,10 @@ def subscribetotransportcompany(message, bot):
                 bot.send_message(call.message.chat.id, 'Серьёзно, ' + transport_companies.pecom + "?")
             case transport_companies.cdek:
                 bot.send_message(call.message.chat.id, 'Серьёзно, ' + transport_companies.cdek + "?")
+            # Обработка кнопки удаления таблички
             case "Break":
-                print("BREAK")
+                bot.delete_message(old_message.chat.id, old_message.message_id)
+            # Обработка неверной кнопочки
             case _:
                 print("На кнопочку справа!")
                 bot.answer_callback_query(call.id, "На кнопочку справа!")
