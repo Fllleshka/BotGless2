@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from time import sleep
 
 from telebot import *
 from urllib3 import request
@@ -374,7 +375,7 @@ def subscribetotransportcompany(message, bot):
         name = element[1] + " " + element[2]
         responsiblename = "Отсутствует ответственный"
         btn1 = telebot.types.InlineKeyboardButton(element[0], callback_data="WrongButton")
-        # Обработка отсутствие отвественного
+        # Обработка отсутствие ответственного
         if name == "None None":
             btn2 = telebot.types.InlineKeyboardButton(responsiblename, callback_data=element[0])
         else:
@@ -390,13 +391,17 @@ def subscribetotransportcompany(message, bot):
     def callback_inline(call):
         match (call.data):
             case transport_companies.dellin:
-                bot.send_message(call.message.chat.id, 'Серьёзно, ' + transport_companies.dellin + "?")
+                bot.send_message(call.message.chat.id, 'Обновляем данные по ' + transport_companies.dellin + ".")
+                changedatesindatabase(id_sotr, transport_companies.dellin, bot, message)
             case transport_companies.nrg_tk:
-                bot.send_message(call.message.chat.id, 'Серьёзно, ' + transport_companies.nrg_tk + "?")
+                bot.send_message(call.message.chat.id, 'Обновляем данные по ' + transport_companies.nrg_tk + ".")
+                changedatesindatabase(id_sotr, transport_companies.nrg_tk, bot, message)
             case transport_companies.pecom:
-                bot.send_message(call.message.chat.id, 'Серьёзно, ' + transport_companies.pecom + "?")
+                bot.send_message(call.message.chat.id, 'Обновляем данные по ' + transport_companies.pecom + ".")
+                changedatesindatabase(id_sotr, transport_companies.pecom, bot, message)
             case transport_companies.cdek:
-                bot.send_message(call.message.chat.id, 'Серьёзно, ' + transport_companies.cdek + "?")
+                bot.send_message(call.message.chat.id, 'Обновляем данные по ' + transport_companies.cdek + ".")
+                changedatesindatabase(id_sotr, transport_companies.cdek, bot, message)
             # Обработка кнопки удаления таблички
             case "Break":
                 bot.delete_message(old_message.chat.id, old_message.message_id)
@@ -405,3 +410,35 @@ def subscribetotransportcompany(message, bot):
                 print("На кнопочку справа!")
                 bot.answer_callback_query(call.id, "На кнопочку справа!")
 
+# Функция изменения данных в базе данных
+def changedatesindatabase(id_responsible, tk_name, bot, message):
+    try:
+        # Открываем соединение с базой данных
+        con = sqlite3.connect(pathdatabase)
+        # Выясняем id человека в базе данных
+        request = 'SELECT id FROM TelegramId WHERE idTelegram = ' + str(id_responsible)
+        id_responsible_in_database = checkdatesfromdatabase(con, request)[0][0]
+        print(f"{id_responsible}\t\t{tk_name}\n{request}\n{id_responsible_in_database}")
+
+        # Выясняем id транспортной компании
+        request = 'SELECT id FROM TransportCompany WHERE Name = "' + str(tk_name) + '"'
+        id_tk_in_database = checkdatesfromdatabase(con, request)[0][0]
+        #print(f"{id_responsible}\t\t{tk_name}\n{request}\n{id_tk_in_database}")
+
+        # Проверка на подписку на эту ТК
+        request = 'SELECT id_responsible FROM TransportCompany WHERE Name = "' + str(tk_name) + '"'
+        id_oldresponsible_in_database = checkdatesfromdatabase(con, request)[0][0]
+        #print(f"{id_responsible}\t\t{tk_name}\n{request}\n{id_responsible_in_database}\t{id_tk_in_database}\t{id_oldresponsible_in_database}")
+        if id_oldresponsible_in_database == id_responsible_in_database:
+            print(f"\t\t{id_responsible_in_database} равен {id_oldresponsible_in_database}. Зачем будем обновлять?")
+        else:
+            # Обновляем данные по транспортной компании
+            request = 'UPDATE TransportCompany SET id_responsible = ' + str(id_responsible_in_database) + ' WHERE id = ' + str(id_tk_in_database)
+            checkdatesfromdatabase(con, request)
+
+        # Закрываем соединение с базой данных
+        con.close()
+
+        bot.send_message(message.chat.id, "Вроде всё получилось")
+    except Exception as e:
+        bot.send_message(message.chat.id, f"Чот сломалось(\nПерешли это сообщение, пожалуйста.\n{e}")
