@@ -1,5 +1,7 @@
 from projectfiles.functionsforallusers import *
 from projectfiles.functionsforadmin import *
+from projectfiles.transportscompanys import *
+
 
 # Токен для связи с ботом
 bot = telebot.TeleBot(botkey)
@@ -90,10 +92,17 @@ class times:
     today = datetime.datetime.today()
     timetoScan = today.strftime("%H:%M")
 
+# Запуск функции опроса данных по ТК
+x = class_tk(bot)
+t0 = Thread(target=x.startprocessing)
+t0.start()
+
 while True:
     try:
         # Запустили постоянный опрос бота Telegram
         bot.polling(none_stop=True, interval=0)
+
     except Exception as e:
         print(e)
         time.sleep(15)
+

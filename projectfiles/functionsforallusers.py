@@ -418,7 +418,7 @@ def changedatesindatabase(id_responsible, tk_name, bot, message):
         # Выясняем id человека в базе данных
         request = 'SELECT id FROM TelegramId WHERE idTelegram = ' + str(id_responsible)
         id_responsible_in_database = checkdatesfromdatabase(con, request)[0][0]
-        print(f"{id_responsible}\t\t{tk_name}\n{request}\n{id_responsible_in_database}")
+        #print(f"{id_responsible}\t\t{tk_name}\n{request}\n{id_responsible_in_database}")
 
         # Выясняем id транспортной компании
         request = 'SELECT id FROM TransportCompany WHERE Name = "' + str(tk_name) + '"'
@@ -430,15 +430,15 @@ def changedatesindatabase(id_responsible, tk_name, bot, message):
         id_oldresponsible_in_database = checkdatesfromdatabase(con, request)[0][0]
         #print(f"{id_responsible}\t\t{tk_name}\n{request}\n{id_responsible_in_database}\t{id_tk_in_database}\t{id_oldresponsible_in_database}")
         if id_oldresponsible_in_database == id_responsible_in_database:
-            print(f"\t\t{id_responsible_in_database} равен {id_oldresponsible_in_database}. Зачем будем обновлять?")
+            bot.send_message(message.chat.id, "Ты уже и так отвественный по этой ТК")
+            #print(f"\t\t{id_responsible_in_database} равен {id_oldresponsible_in_database}. Зачем будем обновлять?")
         else:
             # Обновляем данные по транспортной компании
             request = 'UPDATE TransportCompany SET id_responsible = ' + str(id_responsible_in_database) + ' WHERE id = ' + str(id_tk_in_database)
             checkdatesfromdatabase(con, request)
+            bot.send_message(message.chat.id, "Вроде всё получилось")
 
         # Закрываем соединение с базой данных
         con.close()
-
-        bot.send_message(message.chat.id, "Вроде всё получилось")
     except Exception as e:
         bot.send_message(message.chat.id, f"Чот сломалось(\nПерешли это сообщение, пожалуйста.\n{e}")
