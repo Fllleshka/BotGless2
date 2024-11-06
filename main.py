@@ -63,8 +63,8 @@ def textmessage(message):
         case "🖥Наши социальные сети🖥":
             socialntworks(message, bot)
         case "📝Записаться📝":
-            #pass
-            serviserecord(message, bot)
+            pass
+            #serviserecord(message, bot)
         case "📱Ссылка с TG и отзывами📱":
             channellinkandreviews(message, bot)
         case "📲Ссылки с отзывами📲":

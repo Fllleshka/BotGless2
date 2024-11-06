@@ -242,7 +242,7 @@ def insertfirstdatesintables(con):
     # Функция заполнения таблицы TelegramId
     insertdatesintables(con, 'TelegramId', [userid.id_6080, userid.id_fleysner, userid.id_beregovoy,
                                             userid.id_konovalov, userid.id_zagravskiy,
-                                            userid.id_pushkar, userid.id_pushkar])
+                                            userid.id_pushkar, userid.id_pushkar, userid.id_ivanov])
     # Функция заполнения таблицы ShortNumber
     insertdatesintables(con, 'ShortNumber', [class_shortnumbersworkers.admin, class_shortnumbersworkers.fleysner,
                                              class_shortnumbersworkers.beregovoy, class_shortnumbersworkers.konovalov,
