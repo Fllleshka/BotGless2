@@ -7,6 +7,15 @@ import datetime
 import gspread
 import subprocess
 
+global oldmessage
+
+# Функция для получения
+def GETrequest(manager, headers):
+    request = urlapi + str(manager) + '/agent'
+    result = requests.get(request, headers=headers)
+    return result
+
+
 
 # Функция редактирования call-центра
 def changecallcener(message, bot):
@@ -15,55 +24,59 @@ def changecallcener(message, bot):
     firstname = message.chat.first_name
     lastname = message.chat.last_name
     print(todaytime, "[", firstname, lastname, "] нажал на кнопку [☎Отредактировать call-центр☎]")
-    index = 0
     status = []
     markup = telebot.types.InlineKeyboardMarkup()
-    for i in namesmanagers:
-        statusget = requests.get(urlapi + numbermanagers[index] + '/agent', headers=headers)
+    for i in range(0, len(users.names_managers)):
+        statusget = GETrequest(users.shortnumbers_managers[i], headers)
         # Добавляем статус каждого менеджера в список
         status.append(str(statusget.text)[1:-1])
         # Создаём кнопку имени менеджера
-        buttonname = types.InlineKeyboardButton(namesmanagers[index], callback_data = "123")
+        buttonname = types.InlineKeyboardButton(users.names_managers[i], callback_data = "wrongCallBack")
         # Создаём кнопку статуса менеджера
-        buttonstatus = types.InlineKeyboardButton(text = status[index], callback_data = namesmanagers[index])
+        textfornutton = "🟢 ONLINE 🟢" if (status[i] == "ONLINE") else "🔴 OFFLINE 🔴"
+        buttonstatus = types.InlineKeyboardButton(text = textfornutton, callback_data = users.names_managers[i])
         # Добавляем кнопки в меню
         markup.add(buttonname, buttonstatus)
-        index += 1
-    id_message = bot.send_message(message.chat.id, "Менеджеры онлайн", reply_markup = markup)
-    print(status)
+
+    oldmessage = bot.send_message(message.chat.id, "Менеджеры онлайн", reply_markup = markup)
+
+    # Функция изменения в коллцентре
+    def callback_change_call_center(usershortnumber, username, bot, call, firstname, lastname, oldmessage, message):
+        statusget = str(GETrequest(usershortnumber, headers).text)[1:-1]
+        print("Статус менеджера", username, '(', statusget, ") инвертируем")
+        test_for_callback = changestatus(statusget, usershortnumber)
+        bot.answer_callback_query(call.id, test_for_callback)
+        statusget = str(GETrequest(usershortnumber, headers).text)[1:-1]
+        logger(firstname, lastname, username, statusget)
+        try:
+            bot.edit_message_text("Более не актуально", oldmessage.chat.id, oldmessage.message_id)
+        except:
+            bot.send_message(message.chat.id, "Что то пошло не так( Выберите команду ещё раз")
+        finally:
+            bot.send_message(message.chat.id, "Выберите команду ещё раз")
 
     # Фунция отбработки нажания на кнопку
     @bot.callback_query_handler(func=lambda call: True)
     def callback_query(call):
         match(call.data):
-            case class_namesmanagers.first:
-                statusget = str(requests.get(urlapi + numbermanagers[0] + '/agent', headers=headers).text)[1:-1]
-                print("Статус менеджера", class_namesmanagers.first, '(', statusget, ") инвертируем")
-                test_for_callback = changestatus(statusget, numbermanagers[0])
-                bot.answer_callback_query(call.id, test_for_callback)
-                statusget = str(requests.get(urlapi + numbermanagers[0] + '/agent', headers=headers).text)[1:-1]
-                logger(firstname, lastname, class_namesmanagers.first, statusget)
-            case class_namesmanagers.second:
-                statusget = str(requests.get(urlapi + numbermanagers[1] + '/agent', headers=headers).text)[1:-1]
-                print("Статус менеджера", class_namesmanagers.second, '(', statusget, ") инвертируем")
-                test_for_callback = changestatus(statusget, numbermanagers[1])
-                bot.answer_callback_query(call.id, test_for_callback)
-                statusget = str(requests.get(urlapi + numbermanagers[1] + '/agent', headers=headers).text)[1:-1]
-                logger(firstname, lastname, class_namesmanagers.second, statusget)
-            case class_namesmanagers.third:
-                statusget = str(requests.get(urlapi + numbermanagers[2] + '/agent', headers=headers).text)[1:-1]
-                print("Статус менеджера", class_namesmanagers.third, '(', statusget, ") инвертируем")
-                test_for_callback = changestatus(statusget, numbermanagers[2])
-                bot.answer_callback_query(call.id, test_for_callback)
-                statusget = str(requests.get(urlapi + numbermanagers[2] + '/agent', headers=headers).text)[1:-1]
-                logger(firstname, lastname, class_namesmanagers.third, statusget)
-            case class_namesmanagers.fourth:
-                statusget = str(requests.get(urlapi + numbermanagers[3] + '/agent', headers=headers).text)[1:-1]
-                print("Статус менеджера", class_namesmanagers.fourth, '(', statusget, ") инвертируем")
-                test_for_callback = changestatus(statusget, numbermanagers[3])
-                bot.answer_callback_query(call.id, test_for_callback)
-                statusget = str(requests.get(urlapi + numbermanagers[3] + '/agent', headers=headers).text)[1:-1]
-                logger(firstname, lastname, class_namesmanagers.fourth, statusget)
+            case newusers.konovalov.name:
+                callback_change_call_center(newusers.konovalov.shortnumber, newusers.konovalov.name, bot, call,
+                                            firstname, lastname, oldmessage, message)
+            case newusers.zagravskiy.name:
+                callback_change_call_center(newusers.zagravskiy.shortnumber, newusers.zagravskiy.name, bot, call,
+                                            firstname, lastname, oldmessage, message)
+            case newusers.beregovoy.name:
+                callback_change_call_center(newusers.beregovoy.shortnumber, newusers.beregovoy.name, bot, call,
+                                            firstname, lastname, oldmessage, message)
+            case newusers.peshkov.name:
+                callback_change_call_center(newusers.peshkov.shortnumber, newusers.peshkov.name, bot, call,
+                                            firstname, lastname, oldmessage, message)
+            case newusers.sekachev.name:
+                callback_change_call_center(newusers.sekachev.shortnumber, newusers.sekachev.name, bot, call,
+                                            firstname, lastname, oldmessage, message)
+            case newusers.reserved.name:
+                callback_change_call_center(newusers.reserved.shortnumber, newusers.reserved.name, bot, call,
+                                            firstname, lastname, oldmessage, message)
             case _:
                 print("На кнопочку справа!")
                 bot.answer_callback_query(call.id, "На кнопочку справа!")
@@ -96,13 +109,13 @@ def logger(firstname, lastname, name, status):
 # Функция инверсии статуса
 def changestatus(statusnow, numbermanager):
     if (statusnow == "OFFLINE"):
-        text_for_callback = "Статус " + numbermanager + " изменён на ONLINE"
-        urlforapi = urlapi + numbermanager + '/agent'
-        result = requests.put(urlforapi, params = paramsonline, headers = headers)
+        text_for_callback = "Статус " + str(numbermanager) + " изменён на ONLINE"
+        urlforapi = urlapi + str(numbermanager) + '/agent'
+        requests.put(urlforapi, params = paramsonline, headers = headers)
     else:
-        text_for_callback = "Статус " + numbermanager + " изменён на OFFLINE"
-        urlforapi = urlapi + numbermanager + '/agent'
-        result = requests.put(urlforapi, params = paramoffline, headers = headers)
+        text_for_callback = "Статус " + str(numbermanager) + " изменён на OFFLINE"
+        urlforapi = urlapi + str(numbermanager) + '/agent'
+        requests.put(urlforapi, params = paramoffline, headers = headers)
     return text_for_callback
 
 # Функция отключения всех в Call центре
@@ -110,7 +123,7 @@ def offcallcenter(message, bot):
     today = datetime.datetime.today()
     todaytime = today.strftime("%H:%M:%S")
     print(todaytime, "[", message.chat.first_name, message.chat.last_name, "] нажал на кнопку [Выключить Call-центр]")
-    for element in numbermanagers:
+    for element in class_namesmanagers.numbermanagers:
         urlforapi = urlapi + str(element) + '/agent'
         requests.put(urlforapi, params = paramoffline, headers=headers)
     text = "Все телефоны выключены"

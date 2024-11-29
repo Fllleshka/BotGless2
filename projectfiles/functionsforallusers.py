@@ -45,7 +45,7 @@ def socialntworks(message, bot):
 
 # Функция отправки ошибки ввода сообещния
 def senderrormessage(message, bot):
-    text = "Я что-то ничего не понимаю( Кликните по кнопке, пожалуйста."
+    text = "Я что-то ничего не понимаю(\nКликните по кнопке в нижней панели, пожалуйста."
     bot.send_message(message.chat.id, text)
 
 # Функция отправки ссылок на наши отзывы
@@ -113,6 +113,7 @@ def youid(message, bot):
 def createtables(con):
     # Создаём таблицы
     with con:
+        # Инициализация таблицы FullName
         con.execute(
             """
                 CREATE TABLE FullName (
@@ -122,6 +123,7 @@ def createtables(con):
                 );
             """
         ),
+        # Инициализация таблицы PathFolder
         con.execute(
             """
                 CREATE TABLE PathFolder (
@@ -132,6 +134,7 @@ def createtables(con):
                 );
             """
         ),
+        # Инициализация таблицы TelegramId
         con.execute(
             """
                 CREATE TABLE TelegramId (
@@ -142,6 +145,7 @@ def createtables(con):
                 );
             """
         ),
+        # Инициализация таблицы ShortNumber
         con.execute(
             """
                 CREATE TABLE ShortNumber (
@@ -152,6 +156,7 @@ def createtables(con):
                 );
             """
         ),
+        # Инициализация таблицы TransportCompany
         con.execute(
             """
                 CREATE TABLE TransportCompany (
@@ -165,11 +170,13 @@ def createtables(con):
 
 # Функция заполнения таблиц
 def insertdatesintables(con, nametable, data):
+    requeststart = '"" INSERT INTO '
+    requestend = ' VALUES (?, ?);""'
     match (nametable):
         case "FullName":
             for element in data:
                 mass = element.split()
-                request = """ INSERT INTO FullName (first_name, last_name) VALUES (?, ?);"""
+                request = requeststart + "FullName (first_name, last_name)" + requestend
                 paramsrequest = (mass[0], mass[1])
                 # Вставляем данные в таблицы
                 with con:
@@ -233,21 +240,13 @@ def checkdatesfromdatabase(con, request):
 # Функция вставки первичных данных в базу
 def insertfirstdatesintables(con):
     # Функция заполнения таблицы FullName
-    insertdatesintables(con, 'FullName', Workers)
+    insertdatesintables(con, 'FullName', users.names_workers)
     # Функция заполнения таблицы PathFolder
-    insertdatesintables(con, 'PathFolder', [class_pathmanagers.admin, class_pathmanagers.fleysner,
-                                            class_pathmanagers.beregovoy, class_pathmanagers.konovalov,
-                                            class_pathmanagers.zagravskiy, class_pathmanagers.pushkar,
-                                            class_pathmanagers.peshkov])
+    insertdatesintables(con, 'PathFolder', users.pathfolders_workers)
     # Функция заполнения таблицы TelegramId
-    insertdatesintables(con, 'TelegramId', [userid.id_6080, userid.id_fleysner, userid.id_beregovoy,
-                                            userid.id_konovalov, userid.id_zagravskiy,
-                                            userid.id_pushkar, userid.id_pushkar, userid.id_ivanov])
+    insertdatesintables(con, 'TelegramId', users.ids_workers)
     # Функция заполнения таблицы ShortNumber
-    insertdatesintables(con, 'ShortNumber', [class_shortnumbersworkers.admin, class_shortnumbersworkers.fleysner,
-                                             class_shortnumbersworkers.beregovoy, class_shortnumbersworkers.konovalov,
-                                             class_shortnumbersworkers.zagravskiy, class_shortnumbersworkers.pushkar,
-                                             class_shortnumbersworkers.peshkov])
+    insertdatesintables(con, 'ShortNumber', users.shortnumbers_workers)
     # Функция заполнения таблицы TransportCompany
     insertdatesintables(con, 'TransportCompany', [transport_companies.dellin, transport_companies.nrg_tk,
                                              transport_companies.pecom, transport_companies.cdek])
@@ -389,6 +388,7 @@ def subscribetotransportcompany(message, bot):
     print(f"ID old message: {old_message.message_id}")
     @bot.callback_query_handler(func=lambda call: True)
     def callback_inline(call):
+        print(call.data)
         match (call.data):
             case transport_companies.dellin:
                 bot.send_message(call.message.chat.id, 'Обновляем данные по ' + transport_companies.dellin + ".")
@@ -442,3 +442,4 @@ def changedatesindatabase(id_responsible, tk_name, bot, message):
         con.close()
     except Exception as e:
         bot.send_message(message.chat.id, f"Чот сломалось(\nПерешли это сообщение, пожалуйста.\n{e}")
+
