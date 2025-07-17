@@ -1,6 +1,7 @@
 from projectfiles.functionsforallusers import *
 from projectfiles.functionsforadmin import *
 from projectfiles.transportscompanys import *
+from projectfiles.menu import *
 
 
 # Токен для связи с ботом
@@ -9,6 +10,10 @@ bot = telebot.TeleBot(class_bot.botkey)
 # Командa start
 @bot.message_handler(commands = ['start', 'Вернуться в начало'])
 def start(message):
+
+    # Левое меню
+    menu = LeftMenu(bot)
+    menu.initmenu()
 
     # Кнопки
     class buttons:
@@ -37,20 +42,20 @@ def start(message):
         def create(self):
             match self.id:
                 # Аккаунты администраторов
-                case users.id_administrator | users.id_pushkar | users.id_sekachev:
+                case newusers.administrator.id | newusers.pushkar.id | newusers.sekachev.id:
                     self.markup.add(buttons.btn1, buttons.btn2, buttons.btn5, buttons.btn4, buttons.btn3)
                     self.markup.add(buttons.btn7, buttons.btn8, buttons.btn10, buttons.btn9)
                 # Аккаунты менеджеров
-                case users.id_peshkov | users.id_zagravskiy | users.id_konovalov | users.id_beregovoy:
+                case newusers.peshkov.id | newusers.zagravskiy.id | newusers.konovalov.id | newusers.beregovoy.id:
                     self.markup.add(buttons.btn1, buttons.btn2, buttons.btn5)
                     self.markup.add(buttons.btn4, buttons.btn7)
                     self.markup.add(buttons.btn9)
                 # Аккаунты кладовщиков
-                case users.id_ivanov | users.id_kireev:
+                case newusers.ivanov.id | newusers.kireev.id:
                     self.markup.add(buttons.btn8, buttons.btn10)
                     self.markup.add(buttons.btn9)
                 # Аккаунт технического специалиста
-                case users.id_fleysner:
+                case newusers.fleysner.id:
                     self.markup.add(buttons.btn1, buttons.btn2, buttons.btn3)
                     self.markup.add(buttons.btn4, buttons.btn5, buttons.btn6)
                     self.markup.add(buttons.btn7, buttons.btn8, buttons.btn9)
@@ -80,8 +85,7 @@ def textmessage(message):
         case "🖥Наши социальные сети🖥":
             socialntworks(message, bot)
         case "📝Записаться📝":
-            print(f"{userid.id_6080}\t{type(userid.id_6080)}")
-            print(f"{users.administrator['id']}\t{type(users.administrator['id'])}")
+            print(f"{newusers.administrator.id}\t{type(newusers.administrator.id)}")
             func_not_ready(message, bot)
         case "📱Ссылка с TG и отзывами📱":
             channellinkandreviews(message, bot)

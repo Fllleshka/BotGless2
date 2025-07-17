@@ -104,8 +104,8 @@ def youid(message, bot):
     text = "Человек : " + str(message.chat.id) + "\n" + str(message.chat.first_name) + " " + str(
         message.chat.last_name) + "\n" + str(message.chat.username)
     text2 = "Написал следующее: " + message.text
-    bot.send_message(userid.id_6080, text)
-    bot.send_message(userid.id_6080, text2)
+    bot.send_message(newusers.administrator.id, text)
+    bot.send_message(newusers.administrator.id, text2)
     text3 = "Ваш ID: \n" + str(message.chat.id)
     bot.send_message(message.chat.id, text3)
 
@@ -240,13 +240,13 @@ def checkdatesfromdatabase(con, request):
 # Функция вставки первичных данных в базу
 def insertfirstdatesintables(con):
     # Функция заполнения таблицы FullName
-    insertdatesintables(con, 'FullName', users.names_workers)
+    insertdatesintables(con, 'FullName', newusers.names_workers)
     # Функция заполнения таблицы PathFolder
-    insertdatesintables(con, 'PathFolder', users.pathfolders_workers)
+    insertdatesintables(con, 'PathFolder', newusers.pathfolders_workers)
     # Функция заполнения таблицы TelegramId
-    insertdatesintables(con, 'TelegramId', users.ids_workers)
+    insertdatesintables(con, 'TelegramId', newusers.ids_workers)
     # Функция заполнения таблицы ShortNumber
-    insertdatesintables(con, 'ShortNumber', users.shortnumbers_workers)
+    insertdatesintables(con, 'ShortNumber', newusers.shortnumbers_workers)
     # Функция заполнения таблицы TransportCompany
     insertdatesintables(con, 'TransportCompany', [transport_companies.dellin, transport_companies.nrg_tk,
                                              transport_companies.pecom, transport_companies.cdek])
@@ -294,16 +294,6 @@ def serviserecord(message, bot):
     numbermanagerforrequest = random.randint(0, countonlinemanagers)
     print(f"{numbermanagerforrequest}")
     print("Вашей заявкой займётся: ", massdates[numbermanagerforrequest][1])
-
-
-    #msg = bot.send_message(message.chat.id, "Выберите тему обращения.")
-    #markup = telebot.types.InlineKeyboardMarkup()
-    #listid = [userid.id_beregovoy, userid.id_konovalov, userid.id_zagravskiy]
-    #listnames = [class_namesmanagers.second, class_namesmanagers.third, class_namesmanagers.first]
-    #randommanager = random.randint(0, len(listid) - 1)
-    #textmessage = todaytime + " [" + message.chat.first_name + " " + message.chat.last_name + "] нажал на кнопку [📝Записаться📝]  перевожу заявку на " + listnames[randommanager] + " ( " + str(listid[randommanager]) + " )"
-    #print(textmessage)
-    #bot.send_message(userid.id_6080, textmessage)
 
 # Функция скачивания файлов в папки менеджеров
 def savefileinfolder2(message, bot, path):
@@ -407,7 +397,7 @@ def subscribetotransportcompany(message, bot):
                 bot.delete_message(old_message.chat.id, old_message.message_id)
             # Обработка неверной кнопочки
             case _:
-                print("На кнопочку справа!")
+                print("!")
                 bot.answer_callback_query(call.id, "На кнопочку справа!")
 
 # Функция изменения данных в базе данных

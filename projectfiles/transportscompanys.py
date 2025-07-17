@@ -50,7 +50,7 @@ class class_tk:
                 dellin = Thread(target=self.scandatesfromdellin)
                 dellin.start()
 
-            # Время для отправки данных отвественному по ТК:
+            # Время для отправки данных ответственному по ТК:
             case self.timetosendmessageresponsible:
                 print(f"{argument}\tВремя отправлять данные по ТК")
                 sendmessage = Thread(target=self.sendmessageresponsible)
