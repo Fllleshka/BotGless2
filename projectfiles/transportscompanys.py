@@ -58,7 +58,7 @@ class class_tk:
 
             # Время которое не выбрано для события
             case default:
-                return print("Время сейчас:\t", default)
+                pass
 
     # Сканирование данных с ТК "Деловые Линии"
     def scandatesfromdellin(self):

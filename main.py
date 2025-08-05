@@ -4,7 +4,6 @@ from projectfiles.transportscompanys import *
 from projectfiles.menu import *
 from projectfiles.avitodrom import *
 
-
 # Токен для связи с ботом
 bot = telebot.TeleBot(class_bot.botkey)
 
@@ -118,13 +117,15 @@ def func_not_ready(message, bot):
 
 # Запуск функции опроса данных по ТК
 x = class_tk(bot)
-t0 = Thread(target=x.startprocessing)
+t0 = Thread(target = x.startprocessing)
 t0.start()
 # Запуск функции опроса Дрома и Авито по балансу
+drrom = drom()
+t1 = Thread(target = drrom.startprocessing)
+t1.start()
 #avvito = avito()
 #avvito.balance()
-drrom = drom()
-drrom.check()
+
 
 while True:
     try:
