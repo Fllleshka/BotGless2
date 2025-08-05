@@ -2,6 +2,7 @@ from projectfiles.functionsforallusers import *
 from projectfiles.functionsforadmin import *
 from projectfiles.transportscompanys import *
 from projectfiles.menu import *
+from projectfiles.avitodrom import *
 
 
 # Токен для связи с ботом
@@ -119,6 +120,11 @@ def func_not_ready(message, bot):
 x = class_tk(bot)
 t0 = Thread(target=x.startprocessing)
 t0.start()
+# Запуск функции опроса Дрома и Авито по балансу
+#avvito = avito()
+#avvito.balance()
+drrom = drom()
+drrom.check()
 
 while True:
     try:
