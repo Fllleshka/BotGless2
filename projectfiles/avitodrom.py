@@ -18,9 +18,6 @@ class avito:
         # Авторизация
         self.autorisation_id = datesforavito.autorization_id
         self.autorisation_secret = datesforavito.autorization_secret
-        # Приложение
-        self.app_id = datesforavito.app_id
-        self.pp_secret = datesforavito.app_secret
         # Сессия
         self.__Session = requests.Session()
         # Токен доступа
@@ -29,6 +26,12 @@ class avito:
         self.__ProfileId = self.idProfile()
         # Путь к файлам cookie AVITO
         self.pathfilecookieavito = "projectfiles/cookies/cookies_avito.pki"
+        # URL страницы статистики
+        self.urlstatistics = "https://www.avito.ru/profile/statistics/spending"
+        # URL профиля AVITO
+        self.urlprofile = "https://www.avito.ru/tariff/cpa/profile"
+        # Время сканирования данных в Авито
+        self.timetoscanavito = datetime.time(12, 30).strftime("%H:%M")
 
     def autorisation(self):
         print("Запуск авторизации")
@@ -65,11 +68,142 @@ class avito:
     def balance(self):
         print("Выяснение баланса")
         url = "https://api.avito.ru/core/v1/accounts/" + str(self.__ProfileId) +"/balance/"
+        #url = "https://api.avito.ru/tariff/info/1"
         Headers = dict()
         Headers["Authorization"] = self.__AccessToken
         response = self.__Session.get(url, headers=Headers)
         print(response.text)
         print("Завершение выяснения баланса")
+
+    # Начало работы с Авито
+    def startprocessing(self):
+        print("Запуск потока опроса Дром.")
+        while True:
+            # Время сейчас
+            today = datetime.datetime.today()
+            todaytime = today.strftime("%H:%M")
+            # Запускаем функцию обработки времени
+            self.switcher(todaytime)
+            # Засыпаем функцию
+            time.sleep(60)
+
+    # Функция определения действия
+    def switcher(self, argument):
+        match argument:
+
+            # Время для сканирования ТК
+            case self.timetoscanavito:
+                print(
+                    f"{argument}\tВремя оповещать ответственных по данным на Авито.")
+                self.check()
+
+            # Время которое не выбрано для события
+            case default:
+                pass
+
+    # Главная функция выяснения баланса
+    def check(self):
+        # Запускаем браузер GoogleChrome
+        chrome_options = webdriver.ChromeOptions()
+        driver = webdriver.Chrome(options=chrome_options)
+        # Открываем веб сайт
+        driver.get(self.urlstatistics)
+        # Проверяем есть ли сохранённый файл cookie
+        if os.path.exists(self.pathfilecookieavito) == True:
+            # Загружаем данные файлов cookie
+            self.load_session(driver)
+            # Перезагружаем страницу браузера
+            driver.get(self.urlstatistics)
+            #time.sleep(300)
+        else:
+            # Заполняем данные для входа
+            logininput = datesforavito.phone
+            passwordinput = datesforavito.password
+            time.sleep(10)
+            input_field = driver.find_element(By.NAME, "login")
+            input_field.clear()
+            input_field.send_keys(logininput)
+            input_field = driver.find_element(By.NAME, "password")
+            input_field.clear()
+            input_field.send_keys(passwordinput)
+            time.sleep(120)
+            # Нажимаем на кнопку входа
+            driver.find_element(By.CLASS_NAME, "css-1kdcmzd").click()
+            # Сохраняем cookie для дальнейшего использования
+            self.save_session(driver)
+
+        # Ищем данные о балансе
+        driver.get(self.urlprofile)
+        time.sleep(4)
+        try:
+            balance = driver.find_element(By.CLASS_NAME,
+                                      "styles-header-XwbbZ").text
+            print("Баланс Авито: ", balance)
+            balance2 = balance[-11:-2]
+            balance = balance[-11:-2].replace(',', '.').replace(' ', '')
+            print("Баланс Авито 2: ", float(balance))
+            # Вычисление количества средств до отключения прайс-листа
+            countmoney = int(float(balance) - 250)
+            print("Денег до снятия объявлений с публикации: ", countmoney)
+            averagemoney = self.avaragemonyspent()
+            print("Средние траты в день: ", averagemoney)
+            countdays = int(countmoney/averagemoney)
+            print("Количество дней на которые хватит баланса: ", countdays)
+
+        except Exception as e:
+            print(e)
+        # Закрываем браузер
+        driver.quit()
+        # Отправляем данные ответственному лицу
+        self.sendmessage(balance2, countdays)
+
+    # Функция вычисления средних трат в день
+    def avaragemonyspent(self):
+        # Запускаем браузер GoogleChrome
+        chrome_options = webdriver.ChromeOptions()
+        driver = webdriver.Chrome(options=chrome_options)
+        # Открываем веб сайт
+        driver.get(self.urlstatistics)
+        # Загружаем данные файлов cookie
+        self.load_session(driver)
+        # Перезагружаем страницу браузера
+        driver.get(self.urlstatistics)
+        expenses = driver.find_element(By.CLASS_NAME,
+                                      "styles-spending-header-CfCP5").text
+        expenses = int(float(expenses.replace(' ', '').replace(',', '.').replace('₽','')))
+        print("Количество средств потраченных за последние 30 дней: ", int(expenses))
+        return int(int(expenses)/30)
+
+    # Функция отправки данных ответственному
+    def sendmessage(self, balanse, days):
+        # Токен для связи с ботом
+        bot = telebot.TeleBot(class_bot.botkey)
+        textmessage = "Баланс Авито: " + str(balanse) + " ₽\n"
+        textmessage += "Баланса кошелька зватит на " + str(days) + " дней.\n\n"
+        if days < 3:
+            textmessage += "Необходимо пополнить баланс."
+        else:
+            textmessage += "Нет необходимости пополнять баланс."
+        bot.send_message(newusers.administrator.id, text=textmessage)
+        bot.send_message(newusers.sekachev.id, text=textmessage)
+        print("Оповещение ответственных совершено.")
+
+    # Функция сохранения сессии
+    def save_session(self, driver):
+        path = self.pathfilecookieavito
+        with open(path, 'wb') as file:
+            pickle.dump(driver.get_cookies(), file)
+
+    # Функция загрузки сессии
+    def load_session(self, driver):
+        path = self.pathfilecookieavito
+        try:
+            with open(path, 'rb') as file:
+                cookies = pickle.load(file)
+                for cookie in cookies:
+                    driver.add_cookie(cookie)
+        except FileNotFoundError:
+            print("Файл с cookie не найден.")
 
 # Класс для проверки Дром
 class drom:
@@ -82,7 +216,7 @@ class drom:
         self.url = "https://baza.drom.ru/personal"
         # URL статистики по тратам в день
         self.urlpayments = "https://baza.drom.ru/personal/balance"
-        # Время сканирования данных в ТК
+        # Время сканирования данных в Дром
         self.timetoscandrom = datetime.time(12, 0).strftime("%H:%M")
 
     # Начало работы с Дром
@@ -161,14 +295,14 @@ class drom:
         except FileNotFoundError:
             print("Файл с cookie не найден.")
 
-    # Функция отправки данных отвественному
+    # Функция отправки данных ответственному
     def sendmessage(self, balanse):
         # Токен для связи с ботом
         bot = telebot.TeleBot(class_bot.botkey)
         textmessage = "Баланс Drom: " + str(balanse) + self.replenishmentforecast(balanse)
         bot.send_message(newusers.administrator.id, text=textmessage)
         bot.send_message(newusers.sekachev.id, text=textmessage)
-        print("Оповещение ответственных вершено.")
+        print("Оповещение ответственных совершено.")
 
     # Функция прогнозирования пополнения
     def replenishmentforecast(self, balance):
@@ -194,13 +328,13 @@ class drom:
                 # Обьединение строк из выборки и подсчёт данных пл дням
                 if i % 2 == 0:
                     sum += float(element[indexclick+9:])
-                    print("Второй элемент", i, "\t\t", sum)
+                    #print("Второй элемент", i, "\t\t", sum)
                     paymentdats[element[56:66]] = sum
                     sum = 0
                     i = 0
                 else:
                     sum += float(element[indexclick+9:])
-                    print("Первый элемент", i, "\t\t", sum)
+                    #print("Первый элемент", i, "\t\t", sum)
         # Удаление пробелов из баланса
         balance = balance.replace(' ', '')
         # Вычисляем количество дней, на которых хватит баланса
@@ -214,6 +348,8 @@ class drom:
             text = "\nБаланса кошелька хватит на "
             text += str(int(countdays))
             text += " дней.\n\nНет необходимости пополнять баланс."
+        # Закрываем браузер
+        driver.quit()
         return text
 
     # Функция средней суммы трат в день

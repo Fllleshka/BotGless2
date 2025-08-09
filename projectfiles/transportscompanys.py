@@ -111,7 +111,7 @@ class class_tk:
             print("Файл базы данных отсутствует!\tСоздаём базу и наполняем данными")
             # Открываем соединение с базой данных
             text = "При отправке сообщения о ТК база данных не найдена("
-            self.bot.send_message(userid.id_6080, text)
+            self.bot.send_message(newusers.administrator.id, text)
             return
 
         # Выясняем кому нужно отправить данные
@@ -124,8 +124,6 @@ class class_tk:
             print(f"{type(datesfromdatabase)}{elem}\t{type(elem)}")
         # Закрываем соединение с базой данных
         con.close()
-
-
 
         # Получаем данные для отправки
         for element in range(0, 10):

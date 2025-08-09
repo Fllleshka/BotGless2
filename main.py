@@ -119,13 +119,14 @@ def func_not_ready(message, bot):
 x = class_tk(bot)
 t0 = Thread(target = x.startprocessing)
 t0.start()
-# Запуск функции опроса Дрома и Авито по балансу
+# Запуск функции опроса Дрома по балансу
 drrom = drom()
 t1 = Thread(target = drrom.startprocessing)
 t1.start()
-#avvito = avito()
-#avvito.balance()
-
+# Запуск функции опроса Авито по балансу
+avvito = avito()
+t2 = Thread(target = avvito.startprocessing)
+t2.start()
 
 while True:
     try:
@@ -135,4 +136,3 @@ while True:
     except Exception as e:
         print(e)
         time.sleep(15)
-
