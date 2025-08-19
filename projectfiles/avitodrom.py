@@ -7,8 +7,7 @@ import pickle
 import telebot
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-
-from projectfiles.dates import datesforavito, datesfordrom, class_bot, newusers
+from projectfiles.dates import datesforavito, datesfordrom, class_bot, newusers, countdatesforavito
 
 # Класс для проверки Авито
 class avito:
@@ -33,6 +32,7 @@ class avito:
         # Время сканирования данных в Авито
         self.timetoscanavito = datetime.time(12, 30).strftime("%H:%M")
 
+    # Получение токена авторизации
     def autorisation(self):
         print("Запуск авторизации")
         autourl = "https://api.avito.ru/token/"
@@ -50,34 +50,46 @@ class avito:
         Response = self.__Session.post(autourl, headers=Headers, params=Params)
         jsonresp = dict(json.loads(Response.text))
         result = jsonresp["token_type"] + " " + jsonresp['access_token']
-        print("Авторизация пройдена")
         return result
 
+    # Получение ID профиля
     def idProfile(self):
-        print("Запрос id")
+        #print("Запрос id")
         url = "https://api.avito.ru/core/v1/accounts/self"
         # Заголовки запроса
         Headers = dict()
         Headers["Authorization"] = self.__AccessToken
         response = self.__Session.get(url, headers = Headers)
         profileid = dict(json.loads(response.text))
-        print(profileid["id"])
-        print("Окончание запроса id")
+        #print(profileid["id"])
+        #print("Окончание запроса id")
         return profileid["id"]
 
+    # Функция вычисления баланса аванса
     def balance(self):
-        print("Выяснение баланса")
-        url = "https://api.avito.ru/core/v1/accounts/" + str(self.__ProfileId) +"/balance/"
-        #url = "https://api.avito.ru/tariff/info/1"
+        url = "https://api.avito.ru/cpa/v3/balanceInfo"
         Headers = dict()
         Headers["Authorization"] = self.__AccessToken
-        response = self.__Session.get(url, headers=Headers)
-        print(response.text)
-        print("Завершение выяснения баланса")
+        Headers["X-Source"] = "BotGless2"
+        Headers["Content-Type"] = "application/json"
+        response = self.__Session.post(url, headers=Headers, json={})
+        balance = response.json().get('balance')//100
+        return int(balance)
+
+    # Функция вычисления средних трат в день
+    def avaragemonyspent(self):
+        # Количество средств потраченных за июнь 2025
+        spent_money = countdatesforavito
+        # Количество дней
+        count_days = 30
+        # Средние траты в день
+        avarage_spent = spent_money//count_days
+
+        return avarage_spent
 
     # Начало работы с Авито
     def startprocessing(self):
-        print("Запуск потока опроса Дром.")
+        print("Запуск потока опроса Авито.")
         while True:
             # Время сейчас
             today = datetime.datetime.today()
@@ -103,79 +115,17 @@ class avito:
 
     # Главная функция выяснения баланса
     def check(self):
-        # Запускаем браузер GoogleChrome
-        chrome_options = webdriver.ChromeOptions()
-        driver = webdriver.Chrome(options=chrome_options)
-        # Открываем веб сайт
-        driver.get(self.urlstatistics)
-        # Проверяем есть ли сохранённый файл cookie
-        if os.path.exists(self.pathfilecookieavito) == True:
-            # Загружаем данные файлов cookie
-            self.load_session(driver)
-            # Перезагружаем страницу браузера
-            driver.get(self.urlstatistics)
-            #time.sleep(300)
-        else:
-            # Заполняем данные для входа
-            logininput = datesforavito.phone
-            passwordinput = datesforavito.password
-            time.sleep(10)
-            input_field = driver.find_element(By.NAME, "login")
-            input_field.clear()
-            input_field.send_keys(logininput)
-            input_field = driver.find_element(By.NAME, "password")
-            input_field.clear()
-            input_field.send_keys(passwordinput)
-            time.sleep(120)
-            # Нажимаем на кнопку входа
-            driver.find_element(By.CLASS_NAME, "css-1kdcmzd").click()
-            # Сохраняем cookie для дальнейшего использования
-            self.save_session(driver)
-
-        # Ищем данные о балансе
-        driver.get(self.urlprofile)
-        time.sleep(4)
-        try:
-            balance = driver.find_element(By.CLASS_NAME,
-                                      "styles-header-XwbbZ").text
-            print("Баланс Авито: ", balance)
-            balance2 = balance[-11:-2]
-            balance = balance[-11:-2].replace(',', '.').replace(' ', '')
-            print("Баланс Авито 2: ", float(balance))
-            # Вычисление количества средств до отключения прайс-листа
-            countmoney = int(float(balance) - 250)
-            print("Денег до снятия объявлений с публикации: ", countmoney)
-            averagemoney = self.avaragemonyspent()
-            print("Средние траты в день: ", averagemoney)
-            countdays = int(countmoney/averagemoney)
-            print("Количество дней на которые хватит баланса: ", countdays)
-
-        except Exception as e:
-            print(e)
-        # Закрываем браузер
-        driver.quit()
+        balance = self.balance()
+        #print("Баланс сейчас: ", balance)
+        avmoney = self.avaragemonyspent()
+        #print("Средние траты в день: ", avmoney)
+        countdays = int(int(balance)//avmoney)
+        #print("Количество дней на которые хватит баланса: ", countdays)
         # Отправляем данные ответственному лицу
-        self.sendmessage(balance2, countdays)
-
-    # Функция вычисления средних трат в день
-    def avaragemonyspent(self):
-        # Запускаем браузер GoogleChrome
-        chrome_options = webdriver.ChromeOptions()
-        driver = webdriver.Chrome(options=chrome_options)
-        # Открываем веб сайт
-        driver.get(self.urlstatistics)
-        # Загружаем данные файлов cookie
-        self.load_session(driver)
-        # Перезагружаем страницу браузера
-        driver.get(self.urlstatistics)
-        expenses = driver.find_element(By.CLASS_NAME,
-                                      "styles-spending-header-CfCP5").text
-        expenses = int(float(expenses.replace(' ', '').replace(',', '.').replace('₽','')))
-        print("Количество средств потраченных за последние 30 дней: ", int(expenses))
-        return int(int(expenses)/30)
+        self.sendmessage(balance, countdays)
 
     # Функция отправки данных ответственному
-    def sendmessage(self, balanse, days):
+    def sendmessage(self, balanse, days = 0):
         # Токен для связи с ботом
         bot = telebot.TeleBot(class_bot.botkey)
         textmessage = "Баланс Авито: " + str(balanse) + " ₽\n"
